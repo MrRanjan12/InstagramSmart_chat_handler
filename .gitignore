@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python Virtual Environment
+venv/
+
+# Environment variables / Secrets
+.env
+
+# Local Databases and Logs
+db/
+logs/
+
+# OS-specific files (Optional but highly recommended)
+.DS_Store
+Thumbs.db
