@@ -4,6 +4,14 @@ from fastapi import FastAPI
 from config import config
 from webhook import router as webhook_router
 
+from database import Base
+from database import engine
+
+from models.user import User
+Base.metadata.create_all(
+    bind=engine
+)
+
 app = FastAPI(
     title="Instagram AI Assistant",
     version="1.0.0"

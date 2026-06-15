@@ -61,8 +61,7 @@ class Config:
     # DATABASE
     # =========================
     DATABASE_URL = os.getenv(
-        "DATABASE_URL",
-        "sqlite:///db/conversations.db"
+        "DATABASE_URL"
     )
 
 
