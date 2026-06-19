@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI
 
 from config import config
@@ -7,22 +6,26 @@ from webhook import router as webhook_router
 from database import Base
 from database import engine
 
+# Import models so SQLAlchemy can create tables
 from models.user import User
-Base.metadata.create_all(
-    bind=engine
-)
+from models.conversation import Conversation
+from models.message import Message
+
+
+APP_VERSION = "2.0.0"
 
 app = FastAPI(
     title="Instagram AI Assistant",
-    version="1.0.0"
+    version=APP_VERSION
 )
 
-# Register webhook routes
 app.include_router(webhook_router)
 
 
 @app.on_event("startup")
 async def startup_event():
+
+    Base.metadata.create_all(bind=engine)
 
     print("=" * 60)
     print(f"{config.BOT_NAME} started successfully 🚀")
@@ -37,7 +40,7 @@ async def home():
     return {
         "service": config.BOT_NAME,
         "status": "running",
-        "version": "1.0.0"
+        "version": APP_VERSION
     }
 
 
@@ -47,11 +50,10 @@ async def health_check():
     return {
         "status": "healthy",
         "service": config.BOT_NAME,
-        "version": "1.0.0"
+        "version": APP_VERSION
     }
 
 
-# Development-only testing endpoint
 if config.DEBUG:
 
     from instagram import instagram_api
