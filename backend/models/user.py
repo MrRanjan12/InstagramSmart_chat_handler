@@ -22,7 +22,8 @@ class User(Base):
     )
 
     current_node = Column(
-        String,
+        String(20),
+        nullable=False,
         default="ASTRA"
     )
 

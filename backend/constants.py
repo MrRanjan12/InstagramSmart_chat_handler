@@ -1,0 +1,4 @@
+ASTRA = "ASTRA"
+RANJAN = "RANJAN"
+
+AUTO = "AUTO"
