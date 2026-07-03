@@ -3,7 +3,7 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.sql import func
 
-from database import Base
+from backend.database import Base
 
 class User(Base):
     

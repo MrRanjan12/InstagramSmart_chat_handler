@@ -1,5 +1,5 @@
 import requests
-from config import config
+from backend.config import config
 
 
 class AIAgent:

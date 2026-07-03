@@ -5,7 +5,7 @@ from sqlalchemy import DateTime
 
 from datetime import datetime, timezone
 
-from database import Base
+from backend.database import Base
 
 class Conversation(Base):
     __tablename__ = "conversations"
@@ -18,7 +18,7 @@ class Conversation(Base):
 
     user_id = Column(
         Integer,
-        ForeignKey("user.id"),
+        ForeignKey("users.id"),
         nullable=False
     )
 

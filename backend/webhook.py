@@ -2,9 +2,9 @@
 from fastapi import APIRouter, Request, Query, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 
-from config import config
-from instagram import instagram_api
-from ai_agent import ai_agent
+from backend.config import config
+from backend.instagram import instagram_api
+from backend.ai_agent import ai_agent
 
 import json
 

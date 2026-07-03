@@ -7,7 +7,7 @@ from sqlalchemy import Text
 
 from datetime import datetime, timezone
 
-from database import Base
+from backend.database import Base
 
 class Message(Base):
     __tablename__= "message"

@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 
-from config import config
-from webhook import router as webhook_router
+from backend.config import config
+from backend.webhook import router as webhook_router
 
-from database import Base
-from database import engine
+from backend.database import Base
+from backend.database import engine
 
 # Import models so SQLAlchemy can create tables
-from models.user import User
-from models.conversation import Conversation
-from models.message import Message
+from backend.models.user import User
+from backend.models.conversation import Conversation
+from backend.models.message import Message
 
 
 APP_VERSION = "2.0.0"
@@ -56,7 +56,7 @@ async def health_check():
 
 if config.DEBUG:
 
-    from instagram import instagram_api
+    from backend.instagram import instagram_api
 
     @app.get("/test-message")
     async def test_message():
