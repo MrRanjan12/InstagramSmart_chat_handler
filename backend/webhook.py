@@ -6,6 +6,10 @@ from backend.config import config
 from backend.instagram import instagram_api
 from backend.ai_agent import ai_agent
 
+from backend.database import get_db
+from backend.services.conversation_service import conversation_service
+from backend.services.message_service import message_service
+
 import json
 
 router = APIRouter()
@@ -38,17 +42,63 @@ async def verify_webhook(
         status_code=403
     )
 
+def save_message_to_database(
+    sender_id: str,
+    message_text: str
+):
+    db = next(get_db())
+
+    try:
+
+        user = conversation_service.get_or_create_user(
+            db=db,
+            instagram_id=sender_id
+        )
+
+        conversation = (
+            conversation_service.get_or_create_conversation(
+                db=db,
+                user_id=user.id
+            )
+        )
+
+        message_service.save_user_message(
+            db=db,
+            conversation_id=conversation.id,
+            text=message_text
+        )
+
+    finally:
+        db.close()
 
 def process_message_async(
     sender_id: str,
     prompt: str,
     message_id: str
 ):
+    db = next(get_db())
+
     try:
+
+        user = conversation_service.get_or_create_user(
+            db=db,
+            instagram_id=sender_id
+        )
+
+        conversation = conversation_service.get_or_create_conversation(
+            db=db,
+            user_id=user.id
+        )
 
         reply = ai_agent.generate_reply(prompt)
 
         print("AI Reply:", reply)
+
+        message_service.save_ai_message(
+            db=db,
+            conversation_id=conversation.id,
+            text=reply
+        )
 
         instagram_api.send_message(
             sender_id,
@@ -62,6 +112,8 @@ def process_message_async(
             str(e)
         )
 
+    finally:
+        db.close()
 
 def build_media_prompt(
     attachment_type: str,
@@ -224,6 +276,11 @@ async def receive_webhook(
 
                     print(
                         f"TEXT MESSAGE: {message_text}"
+                    )
+                    
+                    save_message_to_database(
+                        sender_id,
+                        message_text
                     )
 
                     background_tasks.add_task(

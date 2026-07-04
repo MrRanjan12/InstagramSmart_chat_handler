@@ -5,41 +5,41 @@ from backend.models.message import Message
 
 class MessageService:
 
-    @staticmethod
-    def save(
+    def save_user_message(
+        self,
         db: Session,
         conversation_id: int,
-        sender: str,
-        message: str
+        text: str,
     ):
 
-        msg = Message(
+        message = Message(
             conversation_id=conversation_id,
-            sender=sender,
-            message=message
+            role="user",
+            content=text
         )
 
-        db.add(msg)
+        db.add(message)
         db.commit()
-        db.refresh(msg)
+        db.refresh(message)
 
-        return msg
+        return message
 
-    @staticmethod
-    def history(
-        db: Session,
-        conversation_id: int,
-        limit: int = 20
+    def save_ai_message(
+            self,
+            db: Session,
+            conversation_id: int,
+            text: str
     ):
-
-        return (
-            db.query(Message)
-            .filter(
-                Message.conversation_id == conversation_id
-            )
-            .order_by(
-                Message.id.desc()
-            )
-            .limit(limit)
-            .all()
+        message = Message(
+            conversation_id = conversation_id,
+            role = "assistant",
+            content = text
         )
+
+        db.add(message)
+        db.commit()
+        db.refresh(message)
+
+        return message
+    
+message_service = MessageService()
