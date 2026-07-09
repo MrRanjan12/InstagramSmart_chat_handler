@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 
 from backend.database import Base
 
+
 class Message(Base):
-    __tablename__= "message"
+    __tablename__ = "message"
 
     id = Column(
         Integer,

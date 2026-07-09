@@ -1,4 +1,4 @@
-
+from backend.services.memory_service import memory_service
 from fastapi import APIRouter, Request, Query, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 
@@ -90,7 +90,17 @@ def process_message_async(
             user_id=user.id
         )
 
-        reply = ai_agent.generate_reply(prompt)
+        history = memory_service.get_recent_messages(
+            db=db,
+            conversation_id=conversation.id
+        )
+
+        messages = [
+            {"role": msg.role, "content": msg.content}
+            for msg in history
+        ]
+
+        reply = ai_agent.generate_reply(messages)
 
         print("AI Reply:", reply)
 

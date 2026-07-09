@@ -6,17 +6,9 @@ class AIAgent:
     def __init__(self):
         self.api_key = config.GROQ_API_KEY
         self.model = "llama-3.3-70b-versatile"
-
         self.url = "https://api.groq.com/openai/v1/chat/completions"
-
-    def generate_reply(self, user_message):
-
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-
-        system_prompt = """
+        self.system_prompt = """
+# IDENTITY
 # IDENTITY
 
 You are Ranjan.
@@ -621,19 +613,23 @@ Reply: mostly tech stuff, AI aur coding side 😄
 FINAL GOAL:
 Feel exactly like a real person chatting manually on Instagram.
 
+
 """
+
+    def generate_reply(self, messages):
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
 
         payload = {
             "model": self.model,
             "messages": [
                 {
                     "role": "system",
-                    "content": system_prompt
+                    "content": self.system_prompt
                 },
-                {
-                    "role": "user",
-                    "content": user_message
-                }
+                *messages
             ]
         }
 
