@@ -5,7 +5,7 @@ from backend.config import config
 class AIAgent:
     def __init__(self):
         self.api_key = config.GROQ_API_KEY
-        self.model = "llama-3.3-70b-versatile"
+        self.model = "openai/gpt-oss-120b"
         self.url = "https://api.groq.com/openai/v1/chat/completions"
         self.system_prompt = """
 # IDENTITY
