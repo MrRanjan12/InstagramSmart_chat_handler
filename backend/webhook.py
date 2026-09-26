@@ -9,6 +9,7 @@ from backend.ai_agent import ai_agent
 from backend.database import get_db
 from backend.services.conversation_service import conversation_service
 from backend.services.message_service import message_service
+from backend.services.escalation.service import escalation_service
 
 import json
 
@@ -89,6 +90,21 @@ def process_message_async(
             db=db,
             user_id=user.id
         )
+
+        # Evaluate escalation & mode routing
+        evaluation = escalation_service.evaluate_and_route(
+            db=db,
+            user=user,
+            conversation_id=conversation.id,
+            current_message=prompt
+        )
+
+        if not evaluation["should_ai_reply"]:
+            print(
+                f"[ROUTER] Skipping AI response for user {sender_id}. "
+                f"Mode: {evaluation.get('current_mode')}, Reason: {evaluation.get('reason')}"
+            )
+            return
 
         history = memory_service.get_recent_messages(
             db=db,

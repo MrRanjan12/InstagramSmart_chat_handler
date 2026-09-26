@@ -46,6 +46,17 @@ class Config:
     POLITE_MODE = os.getenv("POLITE_MODE", "true").lower() == "true"
 
     # =========================
+    # ESCALATION & INTENT ENGINE
+    # =========================
+    ESCALATION_ENABLED = os.getenv("ESCALATION_ENABLED", "true").lower() == "true"
+    ESCALATION_THRESHOLD = int(os.getenv("ESCALATION_THRESHOLD", 80))
+    ESCALATION_SILENT = os.getenv("ESCALATION_SILENT", "false").lower() == "true"
+    ESCALATION_HANDOFF_MESSAGE = os.getenv(
+        "ESCALATION_HANDOFF_MESSAGE",
+        "Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu."
+    )
+
+    # =========================
     # SERVER
     # =========================
     HOST = os.getenv("HOST", "0.0.0.0")

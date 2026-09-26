@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from backend.config import config
 from backend.webhook import router as webhook_router
+from backend.routes.escalation import router as escalation_router
 
 from backend.database import Base
 from backend.database import engine
@@ -12,7 +13,7 @@ from backend.models.conversation import Conversation
 from backend.models.message import Message
 
 
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.1.0"
 
 app = FastAPI(
     title="Instagram AI Assistant",
@@ -20,6 +21,7 @@ app = FastAPI(
 )
 
 app.include_router(webhook_router)
+app.include_router(escalation_router)
 
 
 @app.on_event("startup")
