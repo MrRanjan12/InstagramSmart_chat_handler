@@ -28,6 +28,9 @@ Astra AI is a production-ready conversational assistant for Instagram that combi
 |---|---|
 | Conversational Memory | Every message and reply is persisted, allowing the assistant to recall prior context indefinitely |
 | Context-Aware Responses | Full conversation history is passed to the LLM on each turn, not just the latest message |
+| Intent Scoring Engine | Real-time 0–100 scoring based on inquiry urgency, message complexity, and intent classification |
+| Human Escalation & Handoff | Auto-detects explicit handoff requests in English & Hinglish, locking bot replies for manual takeover |
+| Hybrid State Routing | Seamless switching between AI mode (`ASTRA`) and Human mode (`RANJAN`) via PostgreSQL state |
 | Instagram Integration | Native support for the Meta Messenger Platform webhook protocol |
 | Automatic User Management | Users and conversations are provisioned automatically on first contact |
 | Duplicate Message Protection | Guards against webhook retries and duplicate event delivery |
@@ -43,14 +46,26 @@ Astra AI is a production-ready conversational assistant for Instagram that combi
 ```
 instagram_ai_assistant/
 ├── backend/
-│   ├── models/          # SQLAlchemy ORM models
-│   ├── services/         # Business logic and memory services
-│   ├── ai_agent.py       # LLM agent and prompt orchestration
-│   ├── config.py         # Environment and application configuration
-│   ├── database.py       # Database session and engine setup
-│   ├── instagram.py      # Instagram/Meta Messenger API client
-│   ├── main.py            # FastAPI application entry point
-│   └── webhook.py        # Webhook verification and event handling
+│   ├── models/                  # SQLAlchemy ORM models (User, Conversation, Message)
+│   ├── routes/                  # API route controllers (Escalation, mode switching)
+│   ├── services/                # Business logic and services
+│   │   ├── escalation/          # Intent Scoring & Human Escalation Engine
+│   │   │   ├── detector.py      # Keyword detection (English + Hinglish)
+│   │   │   ├── engine.py        # Intent scoring (0-100) & classification
+│   │   │   ├── schemas.py       # Pydantic data schemas
+│   │   │   └── service.py       # Orchestrator & state router
+│   │   ├── assistant_router.py  # Mode router (ASTRA vs RANJAN)
+│   │   ├── conversation_service.py
+│   │   ├── memory_service.py
+│   │   ├── message_service.py
+│   │   └── user_service.py
+│   ├── ai_agent.py              # LLM agent and prompt orchestration
+│   ├── config.py                # Environment and application configuration
+│   ├── database.py              # Database session and engine setup
+│   ├── instagram.py             # Instagram/Meta Messenger API client
+│   ├── main.py                  # FastAPI application entry point
+│   └── webhook.py               # Webhook verification and event handling
+├── tests/                       # Unit tests (Pytest / Unittest)
 ├── logs/
 ├── db/
 ├── requirements.txt
@@ -154,6 +169,51 @@ Astra:   Your name is Ranjan. 😊
 
 ---
 
+---
+
+## Intent Scoring & Human Escalation Engine (v2.1)
+
+Astra AI includes a deterministic **Intent Scoring & Escalation Engine** that continuously evaluates user sentiment and triggers human takeover when required:
+
+```mermaid
+flowchart LR
+    A[Incoming Message] --> B[Check User Mode]
+    B -->|RANJAN Mode| C[Silent / Skip AI Reply]
+    B -->|ASTRA Mode| D[Intent Scoring Engine]
+    D --> E{Score >= 80 or Trigger?}
+    E -->|Yes| F[Switch to RANJAN in DB]
+    F --> G[Send Persona Handoff Msg]
+    E -->|No| H[Generate AI Reply]
+    H --> I[Send Instagram DM]
+```
+
+### Core Components
+
+1. **Escalation Detector (`detector.py`)**:
+   - Detects explicit human assistance requests using phrase boundary matching.
+   - **English Triggers**: `"human"`, `"agent"`, `"support"`, `"talk to someone"`, `"speak to a human"`, `"connect me"`, `"call me"`.
+   - **Hinglish Triggers**: `"asli ranjan"`, `"bot ho kya"`, `"real ho kya"`, `"phone karo"`, `"kisi insan se"`, `"ranjan se baat karni"`.
+
+2. **Intent Engine (`engine.py`)**:
+   - Scores user messages ($0–100$) using heuristic analysis (base score, inquiry complexity, exclamation, urgent keywords like `issue`, `problem`, `dikkat`, `madad`).
+   - Caps non-escalation queries at $79$. Any explicit human trigger breaches the threshold and sets score to $95$.
+   - Classifies intent: `general_query` ($<40$), `assistance_needed` ($40–79$), or `human_assistance` ($\ge 80$).
+
+3. **Escalation Orchestrator & State Manager (`service.py`)**:
+   - Backed directly by PostgreSQL (`users.current_node`).
+   - Automatically halts AI replies when user is in `RANJAN` (Human) mode.
+   - Optionally sends a natural persona handoff message (e.g., *"Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu."*) or enables silent handoff.
+
+4. **Escalation Management APIs**:
+   | Method | Endpoint | Description |
+   |---|---|---|
+   | `GET` | `/api/escalation/status/{instagram_id}` | Check user mode (`ASTRA` or `RANJAN`) |
+   | `POST` | `/api/escalation/switch/{instagram_id}` | Manually switch between `ASTRA` and `RANJAN` |
+   | `POST` | `/api/escalation/reset/{instagram_id}` | Reset user state back to `ASTRA` (AI) |
+   | `POST` | `/api/escalation/test-intent` | Test text against scoring engine without DB writes |
+
+---
+
 ## Deployment
 
 Astra AI currently runs in production on the following stack:
@@ -167,6 +227,14 @@ Astra AI currently runs in production on the following stack:
 
 ## Roadmap
 
+### Shipped — v2.1
+
+- [x] Real-time Intent Scoring Engine ($0–100$ scoring)
+- [x] Bilingual Human Escalation Detection (English + Hinglish triggers)
+- [x] Stateful hybrid routing (`ASTRA` AI $\leftrightarrow$ `RANJAN` Human) in PostgreSQL
+- [x] Management APIs for status, manual switching, and conversation resets
+- [x] Test suite with $100\%$ pass rate across intent scoring & keyword triggers
+
 ### Shipped — v2.0
 
 - [x] PostgreSQL integration
@@ -176,11 +244,8 @@ Astra AI currently runs in production on the following stack:
 
 ### Planned
 
-- [ ] Human handoff support
-- [ ] Assistant switching (multi-persona)
 - [ ] Autonomous mode
-- [ ] Conversation analytics
-- [ ] Admin dashboard
+- [ ] Conversation analytics dashboard
 - [ ] Long-term memory summarization
 - [ ] Multi-agent orchestration
 
