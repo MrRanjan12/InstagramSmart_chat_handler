@@ -63,5 +63,34 @@ class TestIntentEngine(unittest.TestCase):
         self.assertFalse(result.human_request_detected)
 
 
+class TestAutoReset(unittest.TestCase):
+    def test_auto_reset_threshold(self):
+        from unittest.mock import MagicMock
+        from datetime import datetime, timezone, timedelta
+        from backend.services.escalation.service import EscalationService
+        from backend.models.message import Message
+
+        service = EscalationService()
+
+        # Mock DB session
+        db_mock = MagicMock()
+
+        # Case 1: Inactivity exceeded (14 hours ago) -> should return True
+        msg_old = Message(id=1, conversation_id=1, role="user", content="old", created_at=datetime.now(timezone.utc) - timedelta(hours=14))
+        msg_now = Message(id=2, conversation_id=1, role="user", content="new", created_at=datetime.now(timezone.utc))
+
+        query_mock = MagicMock()
+        query_mock.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [msg_now, msg_old]
+        db_mock.query.return_value = query_mock
+
+        self.assertTrue(service._should_auto_reset(db_mock, 1))
+
+        # Case 2: Recent activity (30 minutes ago) -> should return False
+        msg_recent = Message(id=3, conversation_id=1, role="user", content="recent", created_at=datetime.now(timezone.utc) - timedelta(minutes=30))
+        query_mock.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [msg_now, msg_recent]
+
+        self.assertFalse(service._should_auto_reset(db_mock, 1))
+
+
 if __name__ == "__main__":
     unittest.main()

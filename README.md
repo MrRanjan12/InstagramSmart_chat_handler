@@ -202,6 +202,7 @@ flowchart LR
 3. **Escalation Orchestrator & State Manager (`service.py`)**:
    - Backed directly by PostgreSQL (`users.current_node`).
    - Automatically halts AI replies when user is in `RANJAN` (Human) mode.
+   - **Automatic Inactivity Reset**: Automatically detects conversation inactivity (e.g. 12 hours configurable via `ESCALATION_AUTO_RESET_HOURS`). If a user texts after the timeout, the system seamlessly switches them back to `ASTRA` (AI) mode without requiring any manual intervention.
    - Optionally sends a natural persona handoff message (e.g., *"Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu."*) or enables silent handoff.
 
 4. **Escalation Management APIs**:

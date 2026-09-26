@@ -1,10 +1,12 @@
 from typing import Dict, Any, Optional
+from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
 
 from backend.config import config
 from backend.constants import ASTRA, RANJAN
 from backend.models.user import User
 from backend.models.conversation import Conversation
+from backend.models.message import Message
 from backend.services.assistant_router import AssistantRouter
 from backend.services.memory_service import memory_service
 from backend.services.message_service import message_service
@@ -15,6 +17,42 @@ from backend.instagram import instagram_api
 class EscalationService:
     def __init__(self, engine: Optional[IntentEngine] = None):
         self.engine = engine or IntentEngine()
+
+    def _should_auto_reset(self, db: Session, conversation_id: int) -> bool:
+        """
+        Checks if the conversation has been inactive for longer than
+        ESCALATION_AUTO_RESET_HOURS. If so, automatically reverts to AI mode.
+        """
+        auto_reset_hours = getattr(config, "ESCALATION_AUTO_RESET_HOURS", 12)
+        if auto_reset_hours <= 0:
+            return False
+
+        # Fetch the two most recent messages
+        # (index 0 is the current message just saved, index 1 is the previous message before the silence)
+        recent_messages = (
+            db.query(Message)
+            .filter(Message.conversation_id == conversation_id)
+            .order_by(Message.created_at.desc())
+            .limit(2)
+            .all()
+        )
+
+        if not recent_messages:
+            return False
+
+        # Use the previous message if available, otherwise the single message
+        reference_message = recent_messages[1] if len(recent_messages) > 1 else recent_messages[0]
+
+        if not reference_message.created_at:
+            return False
+
+        now = datetime.now(timezone.utc)
+        ref_time = reference_message.created_at
+        if ref_time.tzinfo is None:
+            ref_time = ref_time.replace(tzinfo=timezone.utc)
+
+        elapsed = now - ref_time
+        return elapsed >= timedelta(hours=auto_reset_hours)
 
     def evaluate_and_route(
         self,
@@ -36,15 +74,26 @@ class EscalationService:
                 "reason": "escalation_disabled"
             }
 
-        # Step 2: Check current state - if already in Human mode (RANJAN), block AI
+        # Step 2: Check current state - if in Human mode (RANJAN)
         if AssistantRouter.is_human_mode(user):
-            print(f"[ESCALATION] User {user.Instagram_id} is in HUMAN (RANJAN) mode. Skipping AI reply.")
-            return {
-                "should_ai_reply": False,
-                "current_mode": RANJAN,
-                "was_escalated": False,
-                "reason": "human_mode_active"
-            }
+            # Check if inactivity timeout has elapsed -> AUTO-RESET to ASTRA
+            if self._should_auto_reset(db, conversation_id):
+                print(
+                    f"[ESCALATION] Inactivity timeout reached for user {user.Instagram_id}. "
+                    f"Automatically switching mode from RANJAN to ASTRA (AI)."
+                )
+                AssistantRouter.switch_mode(user, ASTRA)
+                db.commit()
+                db.refresh(user)
+                # Fall through to Step 3 so the AI immediately handles this new message!
+            else:
+                print(f"[ESCALATION] User {user.Instagram_id} is in HUMAN (RANJAN) mode. Skipping AI reply.")
+                return {
+                    "should_ai_reply": False,
+                    "current_mode": RANJAN,
+                    "was_escalated": False,
+                    "reason": "human_mode_active"
+                }
 
         # Step 3: AI mode (ASTRA) - Run Intent Engine analysis
         recent_messages = memory_service.get_recent_messages(

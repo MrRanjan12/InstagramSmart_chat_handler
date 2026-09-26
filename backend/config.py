@@ -51,6 +51,7 @@ class Config:
     ESCALATION_ENABLED = os.getenv("ESCALATION_ENABLED", "true").lower() == "true"
     ESCALATION_THRESHOLD = int(os.getenv("ESCALATION_THRESHOLD", 80))
     ESCALATION_SILENT = os.getenv("ESCALATION_SILENT", "false").lower() == "true"
+    ESCALATION_AUTO_RESET_HOURS = int(os.getenv("ESCALATION_AUTO_RESET_HOURS", 12))
     ESCALATION_HANDOFF_MESSAGE = os.getenv(
         "ESCALATION_HANDOFF_MESSAGE",
         "Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu."
