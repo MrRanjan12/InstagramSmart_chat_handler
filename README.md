@@ -140,10 +140,25 @@ pip install -r requirements.txt
 Create a `.env` file in the project root:
 
 ```env
-GROQ_API_KEY=your_groq_api_key
-VERIFY_TOKEN=your_webhook_verify_token
+# Meta / Instagram API
+INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
+INSTAGRAM_APP_SECRET=your_instagram_app_secret
+INSTAGRAM_VERIFY_TOKEN=your_webhook_verify_token
 PAGE_ACCESS_TOKEN=your_page_access_token
+
+# AI Provider
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# Database
 DATABASE_URL=postgresql://username:password@host/database
+
+# Escalation & Intent Engine (Optional)
+ESCALATION_ENABLED=true
+ESCALATION_THRESHOLD=80
+ESCALATION_SILENT=false
+ESCALATION_AUTO_RESET_HOURS=12
+ESCALATION_HANDOFF_MESSAGE="Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu."
 ```
 
 ### Running Locally
@@ -156,6 +171,8 @@ uvicorn backend.main:app --reload
 
 ## Example Interaction
 
+### 1. Normal AI Conversation (`ASTRA` Mode)
+
 ```
 User:    Hi
 Astra:   Hello! 👋
@@ -165,6 +182,23 @@ Astra:   Nice to meet you, Ranjan!
 
 User:    What's my name?
 Astra:   Your name is Ranjan. 😊
+```
+
+### 2. Human Escalation Trigger (`ASTRA` ➔ `RANJAN`)
+
+```
+User:    Bhai asli ranjan se baat karni hai urgent
+Astra:   Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu.
+[AI is automatically locked — Ranjan chats directly from the Instagram app]
+```
+
+### 3. Automatic Inactivity Reversion (`RANJAN` ➔ `ASTRA`)
+
+```
+[12+ hours pass with no messages...]
+User:    Hey bro, free ho gaye kya?
+Astra:   Haan bhai bilkul! Batao kya haal chal? 😄
+[AI automatically resumes handling conversation without manual reset]
 ```
 
 ---
@@ -233,6 +267,7 @@ Astra AI currently runs in production on the following stack:
 - [x] Real-time Intent Scoring Engine ($0–100$ scoring)
 - [x] Bilingual Human Escalation Detection (English + Hinglish triggers)
 - [x] Stateful hybrid routing (`ASTRA` AI $\leftrightarrow$ `RANJAN` Human) in PostgreSQL
+- [x] Automatic inactivity switching (auto-reset from Human back to AI after configurable timeout)
 - [x] Management APIs for status, manual switching, and conversation resets
 - [x] Test suite with $100\%$ pass rate across intent scoring & keyword triggers
 
