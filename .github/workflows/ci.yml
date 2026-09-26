@@ -1,0 +1,36 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Run Unit Tests & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: "pip"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Test Suite
+      env:
+        DATABASE_URL: "sqlite:///:memory:"
+        GROQ_API_KEY: "mock_test_key"
+        INSTAGRAM_VERIFY_TOKEN: "mock_verify_token"
+        PAGE_ACCESS_TOKEN: "mock_page_token"
+      run: |
+        python -m unittest discover tests

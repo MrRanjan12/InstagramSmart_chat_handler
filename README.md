@@ -6,13 +6,16 @@
 
 Built on FastAPI, Groq's Llama 3.3, PostgreSQL, and the Meta Messenger Platform
 
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/MrRanjan12/InstagramSmart_chat_handler/releases)
+[![CI](https://github.com/MrRanjan12/InstagramSmart_chat_handler/actions/workflows/ci.yml/badge.svg)](https://github.com/MrRanjan12/InstagramSmart_chat_handler/actions)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Groq](https://img.shields.io/badge/Groq-Llama%203.3-F55036)](https://groq.com/)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](#license)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-[Overview](#overview) • [Architecture](#architecture) • [Getting Started](#getting-started) • [Configuration](#configuration) • [Roadmap](#roadmap)
+[Overview](#overview) • [Architecture](#architecture) • [Getting Started](#getting-started) • [Configuration](#configuration) • [Releases & Changelog](CHANGELOG.md) • [Roadmap](#roadmap)
 
 </div>
 
