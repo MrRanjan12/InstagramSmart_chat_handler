@@ -1,5 +1,6 @@
 import re
 from typing import List, Tuple, Set
+from backend.config import config
 
 
 # Standard English escalation keywords / phrases
@@ -15,17 +16,27 @@ ENGLISH_KEYWORDS: Set[str] = {
     "speak to someone",
     "talk to a human",
     "speak to a human",
+    "talk to a person",
+    "speak to a person",
+    "talk to agent",
+    "speak to agent",
     "connect me",
     "real person",
+    "live agent",
+    "customer support",
+    "customer care",
     "manual reply",
     "call me",
     "call pe aao",
     "phone call",
+    "stop bot",
+    "turn off bot",
 }
 
 # Hinglish / Hindi escalation keywords / phrases tailored for Ranjan's Instagram
 HINGLISH_KEYWORDS: Set[str] = {
     "asli ranjan",
+    "real ranjan",
     "asli ho kya",
     "real ho kya",
     "bot ho kya",
@@ -34,13 +45,19 @@ HINGLISH_KEYWORDS: Set[str] = {
     "kisi insan se",
     "kisi insaan se",
     "phone karo",
+    "call karo",
     "call karu",
     "number do",
+    "apna number",
     "asli banda",
     "bande se baat",
+    "ranjan se baat",
     "ranjan se baat karni",
+    "ranjan se call",
     "khud reply karo",
     "asli banda baat kare",
+    "bot band karo",
+    "bot band",
 }
 
 ALL_KEYWORDS: Set[str] = ENGLISH_KEYWORDS | HINGLISH_KEYWORDS
@@ -48,7 +65,18 @@ ALL_KEYWORDS: Set[str] = ENGLISH_KEYWORDS | HINGLISH_KEYWORDS
 
 class EscalationDetector:
     def __init__(self, custom_keywords: Set[str] = None):
-        self.keywords = custom_keywords if custom_keywords is not None else ALL_KEYWORDS
+        if custom_keywords is not None:
+            self.keywords = custom_keywords
+        else:
+            self.keywords = set(ALL_KEYWORDS)
+            # Incorporate any custom keywords from configuration / .env
+            env_keywords = getattr(config, "HUMAN_HANDOFF_KEYWORDS", "")
+            if env_keywords:
+                for kw in env_keywords.split(","):
+                    cleaned = kw.strip().lower()
+                    if cleaned:
+                        self.keywords.add(cleaned)
+
 
     def detect(self, messages: List[str]) -> Tuple[bool, List[str]]:
         """

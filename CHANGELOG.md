@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] - 2026-10-24
+
+### Fixed
+- **Neon Serverless PostgreSQL Resilience**: Added `get_db_context` with automatic retry logic (3 attempts with exponential backoff) to handle Neon cold starts and `SSL unexpected EOF` drops. Configured SQLAlchemy engine with PgBouncer connection recycling (`pool_recycle=300`) and TCP keepalives.
+- **Immediate Webhook Acknowledgment**: Optimized `receive_webhook` to respond within milliseconds to Meta to prevent 5-second webhook delivery timeouts, offloading all DB persistence and AI tasks to background workers.
+- **Media & Instagram Reel Persistence**: Fixed defect where media attachments (Reels, Images, Videos, Audio) bypassed database persistence. User attachments are now recorded with formatted titles/captions in Neon DB and passed into AI context.
+- **Stale Human Escalation Bug**: Fixed issue in `IntentEngine.analyze` where historical escalation keywords in past turns re-triggered escalation on subsequent casual messages. Explicit human triggers are now evaluated on the active message turn.
+- **Instagram DM Echo & Human Takeover**: Supported Meta echo events so manual replies sent directly by Ranjan on Instagram are captured, persisted in Neon DB as `assistant` messages, and keep `RANJAN` mode active.
+- **Direct DM Reset Command**: Enabled direct AI reset via Instagram chat using `#astra` or `#bot`.
+- **Database Concurrency & Null Safety**: Added `IntegrityError` rollback and re-fetch for thread-safe user/conversation provisioning, and enforced safe fallbacks for empty message content.
+
+---
+
 ## [2.1.0] - 2026-09-26
 
 ### Added

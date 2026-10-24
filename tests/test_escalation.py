@@ -20,6 +20,9 @@ class TestEscalationDetector(unittest.TestCase):
             ["tum bot ho kya yaar?"],
             ["phone karo mujhe urgent"],
             ["kisi insan se connect kara do"],
+            ["real ranjan se baat karwao"],
+            ["call karo urgent bhai"],
+            ["bot band karo"],
         ]
         for msgs in test_cases:
             detected, matched = self.detector.detect(msgs)
@@ -48,6 +51,15 @@ class TestIntentEngine(unittest.TestCase):
         self.assertEqual(result.intent_score, 95)
         self.assertEqual(result.intent_classification, "human_assistance")
         self.assertTrue(result.human_request_detected)
+
+    def test_history_does_not_falsely_re_escalate_casual_message(self):
+        # Even if a previous turn had an escalation request, a new casual turn must NOT re-escalate
+        result = self.engine.analyze([
+            "bhai asli ranjan se baat karni hai",
+            "Hey Ranjan, free ho gaye kya? Kaisa hai?"
+        ])
+        self.assertFalse(result.human_request_detected)
+        self.assertEqual(result.intent_classification, "general_query")
 
     def test_general_query_scoring(self):
         result = self.engine.analyze(["Hey how are you?"])

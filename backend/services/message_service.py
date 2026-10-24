@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-
 from backend.models.message import Message
 
 
@@ -11,35 +10,45 @@ class MessageService:
         conversation_id: int,
         text: str,
     ):
+        safe_content = str(text) if text is not None and str(text).strip() != "" else "[Empty or non-text message]"
 
         message = Message(
             conversation_id=conversation_id,
             role="user",
-            content=text
+            content=safe_content
         )
 
-        db.add(message)
-        db.commit()
-        db.refresh(message)
-
-        return message
+        try:
+            db.add(message)
+            db.commit()
+            db.refresh(message)
+            return message
+        except Exception:
+            db.rollback()
+            raise
 
     def save_ai_message(
-            self,
-            db: Session,
-            conversation_id: int,
-            text: str
+        self,
+        db: Session,
+        conversation_id: int,
+        text: str
     ):
+        safe_content = str(text) if text is not None else ""
+
         message = Message(
-            conversation_id = conversation_id,
-            role = "assistant",
-            content = text
+            conversation_id=conversation_id,
+            role="assistant",
+            content=safe_content
         )
 
-        db.add(message)
-        db.commit()
-        db.refresh(message)
+        try:
+            db.add(message)
+            db.commit()
+            db.refresh(message)
+            return message
+        except Exception:
+            db.rollback()
+            raise
 
-        return message
-    
-message_service = MessageService()
+
+message_service = MessageService()

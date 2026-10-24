@@ -21,7 +21,9 @@ class IntentEngine:
                 reason="no_messages"
             )
 
-        human_detected, matched_keywords = self.detector.detect(messages)
+        # Detect explicit human assistance on the latest message to avoid re-triggering from historical turns
+        latest_message = messages[-1] if messages else ""
+        human_detected, matched_keywords = self.detector.detect([latest_message]) if latest_message else (False, [])
 
         if human_detected:
             return IntentResult(

@@ -637,7 +637,8 @@ Feel exactly like a real person chatting manually on Instagram.
             response = requests.post(
                 self.url,
                 headers=headers,
-                json=payload
+                json=payload,
+                timeout=25
             )
 
             data = response.json()

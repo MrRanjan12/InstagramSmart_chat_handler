@@ -48,7 +48,7 @@ class Config:
     # =========================
     # ESCALATION & INTENT ENGINE
     # =========================
-    ESCALATION_ENABLED = os.getenv("ESCALATION_ENABLED", "true").lower() == "true"
+    ESCALATION_ENABLED = os.getenv("ESCALATION_ENABLED", os.getenv("ENABLE_HUMAN_HANDOFF", "true")).lower() == "true"
     ESCALATION_THRESHOLD = int(os.getenv("ESCALATION_THRESHOLD", 80))
     ESCALATION_SILENT = os.getenv("ESCALATION_SILENT", "false").lower() == "true"
     ESCALATION_AUTO_RESET_HOURS = int(os.getenv("ESCALATION_AUTO_RESET_HOURS", 12))
@@ -56,6 +56,7 @@ class Config:
         "ESCALATION_HANDOFF_MESSAGE",
         "Haan bhai ek second, main thoda busy tha, abhi free hoke reply karta hu."
     )
+    HUMAN_HANDOFF_KEYWORDS = os.getenv("HUMAN_HANDOFF_KEYWORDS", "")
 
     # =========================
     # SERVER
