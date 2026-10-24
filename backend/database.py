@@ -9,23 +9,31 @@ db_url = config.DATABASE_URL or ""
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-connect_args = {}
+engine_kwargs = {
+    "pool_pre_ping": True,
+}
+
 if "postgresql" in db_url:
-    connect_args = {
-        "connect_timeout": 15,
-        "keepalives": 1,
-        "keepalives_idle": 30,
-        "keepalives_interval": 10,
-        "keepalives_count": 5,
-    }
+    engine_kwargs.update({
+        "pool_recycle": 300,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "connect_args": {
+            "connect_timeout": 15,
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        }
+    })
+elif "sqlite" in db_url:
+    engine_kwargs.update({
+        "connect_args": {"check_same_thread": False}
+    })
 
 engine = create_engine(
     db_url,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=10,
-    max_overflow=20,
-    connect_args=connect_args
+    **engine_kwargs
 )
 
 sessionLocal = sessionmaker(
